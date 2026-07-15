@@ -102,7 +102,6 @@ type Toast = { id: number; event: CasinoEvent }
 let toastId = 0
 
 export function CasinoEventLayer({ sound }: { sound: boolean }) {
-  const [toasts, setToasts] = useState<Toast[]>([])
   const [bigWin, setBigWin] = useState<{ payout: number; multiplier: number; mega: boolean } | null>(null)
   const soundRef = useRef(sound)
   soundRef.current = sound
@@ -111,12 +110,7 @@ export function CasinoEventLayer({ sound }: { sound: boolean }) {
     if (event.type === 'big-win') {
       setBigWin({ payout: event.payout, multiplier: event.multiplier, mega: event.mega })
       playUpgradeResult(soundRef.current, true)
-      return
     }
-    if (event.type === 'jackpot') playUpgradeResult(soundRef.current, true)
-    const id = ++toastId
-    setToasts((current) => [...current.slice(-3), { id, event }])
-    window.setTimeout(() => setToasts((current) => current.filter((toast) => toast.id !== id)), 4200)
   }), [])
 
   useEffect(() => {
@@ -125,31 +119,17 @@ export function CasinoEventLayer({ sound }: { sound: boolean }) {
     return () => window.clearTimeout(timer)
   }, [bigWin])
 
+  if (!bigWin) return null
   return (
-    <>
-      <div className="casino-toasts" aria-live="polite">
-        {toasts.map(({ id, event }) => (
-          <div key={id} className={`casino-toast toast-${event.type}`}>
-            {event.type === 'level-up' && <><Sparkles aria-hidden="true" /><div><b>LEVEL {event.level}!</b><span>+{money(event.reward)} coins reward</span></div></>}
-            {event.type === 'jackpot' && <><Gem aria-hidden="true" /><div><b>JACKPOT HIT!</b><span>+{money(event.amount)} coins</span></div></>}
-            {event.type === 'mission' && <><Target aria-hidden="true" /><div><b>MISSION COMPLETE</b><span>{event.label} · claim +{money(event.reward)}</span></div></>}
-            {event.type === 'streak' && <><Flame aria-hidden="true" /><div><b>{event.streak} WIN STREAK</b><span>+50% XP boost active</span></div></>}
-            {event.type === 'tier-up' && <><Crown aria-hidden="true" /><div><b>{event.tier} VIP</b><span>Higher rakeback unlocked</span></div></>}
-          </div>
-        ))}
+    <div className={`big-win-overlay ${bigWin.mega ? 'mega' : ''}`} role="status" onClick={() => setBigWin(null)}>
+      <div className="big-win-card">
+        <div className="big-win-rays" aria-hidden="true" />
+        <span>{bigWin.mega ? 'MEGA WIN' : 'BIG WIN'}</span>
+        <b>{money(bigWin.payout)}</b>
+        <em>{bigWin.multiplier.toFixed(2)}x</em>
+        <div className="big-win-coins" aria-hidden="true">{Array.from({ length: 18 }, (_, index) => <i key={index} style={{ '--n': index } as React.CSSProperties} />)}</div>
       </div>
-      {bigWin && (
-        <div className={`big-win-overlay ${bigWin.mega ? 'mega' : ''}`} role="status" onClick={() => setBigWin(null)}>
-          <div className="big-win-card">
-            <div className="big-win-rays" aria-hidden="true" />
-            <span>{bigWin.mega ? 'MEGA WIN' : 'BIG WIN'}</span>
-            <b>{money(bigWin.payout)}</b>
-            <em>{bigWin.multiplier.toFixed(2)}x</em>
-            <div className="big-win-coins" aria-hidden="true">{Array.from({ length: 18 }, (_, index) => <i key={index} style={{ '--n': index } as React.CSSProperties} />)}</div>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   )
 }
 

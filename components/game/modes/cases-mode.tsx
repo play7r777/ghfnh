@@ -89,6 +89,7 @@ type Props = { state: GameState; setState: React.Dispatch<React.SetStateAction<G
 
 export function CasesMode({ state, setState, allSkins, operationLock, setOperationLock, sound }: Props) {
   const viewportRef = useRef<HTMLDivElement | null>(null)
+  const trackRef = useRef<HTMLDivElement | null>(null)
   const roundTimer = useRef<number | null>(null)
   const roundToken = useRef(0)
   const [caseId, setCaseId] = useState(CASES[0].id)
@@ -136,13 +137,21 @@ export function CasesMode({ state, setState, allSkins, operationLock, setOperati
     setReel(cells)
     setSpinning(false)
     setTranslate(0)
-    const viewportWidth = viewportRef.current?.clientWidth ?? 900
-    const trackWidth = REEL_LENGTH * CELL
-    const offsetInCell = (random() * 0.5 - 0.25) * CELL // stop-point jitter inside the winner cell
-    const rawTarget = WINNER_INDEX * CELL + CELL / 2 - viewportWidth / 2 + offsetInCell
-    // Never scroll past the strip edges — this is what caused the empty "void" after the winner.
-    const target = Math.max(0, Math.min(rawTarget, trackWidth - viewportWidth))
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => { setSpinning(true); setTranslate(-target) }))
+    const jitter = random() * 0.4 - 0.2 // stop-point jitter within the winner cell (-0.2..0.2)
+    // Measure the REAL winner-cell position after layout — card width is responsive
+    // (128px / 110px), so a hardcoded step would overshoot the strip into grey emptiness.
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      const track = trackRef.current
+      const viewportWidth = viewportRef.current?.clientWidth ?? 900
+      const winnerEl = track?.querySelector('[data-winner="true"]') as HTMLElement | null
+      const cellWidth = winnerEl?.offsetWidth ?? CELL
+      const trackWidth = track?.scrollWidth ?? REEL_LENGTH * cellWidth
+      const winnerCenter = winnerEl ? winnerEl.offsetLeft + cellWidth / 2 : WINNER_INDEX * CELL + CELL / 2
+      const rawTarget = winnerCenter - viewportWidth / 2 + jitter * cellWidth
+      const target = Math.max(0, Math.min(rawTarget, Math.max(0, trackWidth - viewportWidth)))
+      setSpinning(true)
+      setTranslate(-target)
+    }))
     const token = ++roundToken.current
     roundTimer.current = window.setTimeout(() => {
       if (token !== roundToken.current) return
@@ -163,8 +172,8 @@ export function CasesMode({ state, setState, allSkins, operationLock, setOperati
     <div className="arcade-hero"><span>SOLO GAME</span><h1>{activeCase.name}</h1><p>{status}</p>
       <div className="case-reel" ref={viewportRef}>
         <i className="case-reel-pointer" aria-hidden="true"/>
-        <div className={`case-reel-track ${spinning ? 'is-spinning' : ''}`} style={{ transform: `translateX(${translate}px)`, transitionDuration: spinning ? `${SPIN_MS}ms` : '0ms' }}>
-          {cells.map(({ skin, key }) => <div key={key} className={`case-reel-cell ${skin.rarity}`} style={{ borderColor: rarityColor(skin) }}><SkinImage src={skin.image} alt={`${skin.weapon} ${skin.name}`}/><span>{skin.weapon}</span><b>{money(skin.price)}</b></div>)}
+        <div ref={trackRef} className={`case-reel-track ${spinning ? 'is-spinning' : ''}`} style={{ transform: `translateX(${translate}px)`, transitionDuration: spinning ? `${SPIN_MS}ms` : '0ms' }}>
+          {cells.map(({ skin, key }) => <div key={key} data-winner={key.startsWith('win-') ? 'true' : undefined} className={`case-reel-cell ${skin.rarity}`} style={{ borderColor: rarityColor(skin) }}><SkinImage src={skin.image} alt={`${skin.weapon} ${skin.name}`}/><span>{skin.weapon}</span><b>{money(skin.price)}</b></div>)}
         </div>
         <i className="case-reel-fade left" aria-hidden="true"/>
         <i className="case-reel-fade right" aria-hidden="true"/>
