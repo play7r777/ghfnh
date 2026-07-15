@@ -58,7 +58,7 @@ function Header({ state, sound, mode, onMode, onSound, onTopup, onProfile, onLan
     <button className="circle-action" aria-label="Sound" onClick={onSound}>{sound?<Volume2/>:<VolumeX/>}</button>
     <button className="balance"><b>{money(state.balance)}</b><Mark small/></button>
     <button className="topup" onClick={onTopup}><Wallet/>{t.topup}</button>
-    <button className="avatar" onClick={onProfile} aria-label="Open player profile"><CircleUserRound/></button>
+    <button className="avatar" onClick={onProfile} aria-label="Open player profile">{state.avatar?<img src={state.avatar} alt="Your avatar"/>:<CircleUserRound/>}</button>
   </header>
 }
 
@@ -126,17 +126,18 @@ function TopupModal({state,setState,operationLock,setOperationLock,onClose}:{sta
 }
 
 function ProfileModal({state,setState,allSkins,onClose}:{state:GameState;setState:React.Dispatch<React.SetStateAction<GameState>>;allSkins:Skin[];onClose:()=>void}){
- const [selected,setSelected]=useState<string[]>([]); const [code,setCode]=useState(''); const [confirmReset,setConfirmReset]=useState(false); const inventory=state.inventory.map(instance=>({instance,skin:allSkins.find(s=>s.id===skinIdFromInstance(instance))!})).filter(row=>row.skin); const total=inventory.reduce((a,row)=>a+row.skin.price,0)
+ const [selected,setSelected]=useState<string[]>([]); const [nick,setNick]=useState(state.nickname??''); const [confirmReset,setConfirmReset]=useState(false); const inventory=state.inventory.map(instance=>({instance,skin:allSkins.find(s=>s.id===skinIdFromInstance(instance))!})).filter(row=>row.skin); const total=inventory.reduce((a,row)=>a+row.skin.price,0)
  const sell=(ids:string[])=>{const uniqueOwned=[...new Set(ids)].filter(id=>state.inventory.includes(id));if(!uniqueOwned.length)return;const sum=uniqueOwned.reduce((a,id)=>a+(allSkins.find(s=>s.id===skinIdFromInstance(id))?.price||0),0);setState(s=>({...s,balance:s.balance+sum,inventory:s.inventory.filter(id=>!uniqueOwned.includes(id))}));setSelected([])}
- const [promoLock,setPromoLock]=useState(false)
- const promo=()=>{if(promoLock)return;const c=code.trim().toUpperCase();if((c==='UPGRADE' || c==='WELCOME')&&!state.promo.includes(c)){setPromoLock(true);setState(s=>({...s,balance:Math.min(MAX_BALANCE,s.balance+500*ECONOMY_SCALE),promo:[...s.promo,c]}));setCode('');window.setTimeout(()=>setPromoLock(false),500)}}
- return <Modal title="PLAYER PROFILE" onClose={onClose}><div className="profile-head"><div className="profile-avatar"><CircleUserRound/></div><div><h3>{state.nickname}</h3><p>Total improvements: <b>{state.upgrades}</b></p></div><span>—</span><div className="promo"><input value={code} onChange={e=>setCode(e.target.value)} placeholder="PROMOCODE..."/><button onClick={promo}>ENTER</button></div></div>
+ const saveNickname=(event:React.FormEvent)=>{event.preventDefault();const clean=nick.trim().replace(/\s+/g,' ').slice(0,20);if(clean.length>=2&&clean!==state.nickname)setState(s=>({...s,nickname:clean}))}
+ const onAvatarChange=(event:React.ChangeEvent<HTMLInputElement>)=>{const file=event.target.files?.[0];event.target.value='';if(!file||!file.type.startsWith('image/'))return;const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const size=128;const canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;const ctx=canvas.getContext('2d');if(!ctx)return;const scale=Math.max(size/img.width,size/img.height);const w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(size-w)/2,(size-h)/2,w,h);const data=canvas.toDataURL('image/jpeg',0.82);if(data.length<=200000)setState(s=>({...s,avatar:data}))};img.src=reader.result as string};reader.readAsDataURL(file)}
+ const removeAvatar=()=>setState(s=>({...s,avatar:null}))
+ return <Modal title="PLAYER PROFILE" onClose={onClose}><div className="profile-head"><label className="profile-avatar" title="Change avatar">{state.avatar?<img src={state.avatar} alt="Your avatar"/>:<CircleUserRound/>}<input type="file" accept="image/*" onChange={onAvatarChange} aria-label="Upload avatar"/><span className="avatar-edit">EDIT</span></label><div className="profile-identity"><div><h3>{state.nickname}</h3><p>Total improvements: <b>{state.upgrades}</b></p></div><form className="nickname-edit" onSubmit={saveNickname}><input value={nick} minLength={2} maxLength={20} onChange={e=>setNick(e.target.value)} placeholder="New nickname" aria-label="Change nickname"/><button className="yellow-button" disabled={nick.trim().length<2||nick.trim()===state.nickname}>SAVE</button></form>{state.avatar&&<button type="button" className="avatar-remove" onClick={removeAvatar}>Remove avatar</button>}</div></div>
  <div className="profile-day-stats" aria-label="Player statistics"><div><span>WON TODAY</span><b className="positive">{money(state.casino.dayWon)}</b></div><div><span>BEST WIN TODAY</span><b>{money(state.casino.dayBestWin)}</b></div><div><span>ALL-TIME BEST WIN</span><b>{money(state.casino.biggestWin)}</b></div><div><span>BEST WIN STREAK</span><b>{state.casino.bestStreak}×</b></div></div>
  <div className="inventory-label"><div><b>MY INVENTORY FOR SALE</b><span>Inventory for: {money(total)} <Mark small/></span></div><strong>Selected for: {money(selected.reduce((a,id)=>a+(allSkins.find(s=>s.id===skinIdFromInstance(id))?.price||0),0))} <Mark small/></strong></div>
  <div className="profile-inventory">{inventory.length?inventory.map(({instance,skin})=><SkinCard key={instance} skin={skin} selected={selected.includes(instance)} onClick={()=>setSelected(x=>x.includes(instance)?x.filter(id=>id!==instance):[...x,instance])}/>):<p>Your inventory is empty.</p>}</div>
  <div className="profile-actions"><button disabled={!selected.length} onClick={()=>sell(selected)}>SELL THE SELECTED</button><button disabled={!inventory.length} onClick={()=>sell(state.inventory)}>SELL ALL</button></div>
  {state.history.length>0&&<div className="history"><b>RECENT UPGRADES</b>{state.history.slice(0,4).map(h=><span key={h.id} className={h.won?'won':'lost'}>{h.won?'SUCCESS':'FAILED'} · {h.target} · {h.chance.toFixed(2)}%</span>)}</div>}
- <details className="advanced-settings"><summary>ADVANCED SETTINGS</summary><div className="danger-zone"><div><b>RESET ALL PROGRESS</b><p>Deletes your balance, inventory, upgrades, X3, promo codes and history. Your balance returns to 5,000 coins.</p></div><button className="reset-button" onClick={()=>setConfirmReset(true)}>RESET GAME</button></div></details>
+ <details className="advanced-settings"><summary>ADVANCED SETTINGS</summary><div className="danger-zone"><div><b>RESET ALL PROGRESS</b><p>Deletes your balance, inventory, upgrades, X3, nickname, avatar and history. Your balance returns to 5,000 coins.</p></div><button className="reset-button" onClick={()=>setConfirmReset(true)}>RESET GAME</button></div></details>
  {confirmReset&&<div className="reset-confirm" role="alertdialog" aria-modal="true" aria-labelledby="reset-title"><div><h3 id="reset-title">RESET EVERYTHING?</h3><p>This cannot be undone. All local progress will be deleted and your new balance will be 5,000 coins.</p><div><button onClick={()=>setConfirmReset(false)}>CANCEL</button><button className="reset-button" onClick={()=>{localStorage.removeItem('upgrader-game-v2');setState({...initial,coinFarm:{readySlots:0,cycleStartedAt:Date.now()}});setSelected([]);setConfirmReset(false);onClose()}}>YES, RESET ALL</button></div></div></div>}
  </Modal>
 }
@@ -178,7 +179,7 @@ export function UpgraderApp({initialCatalog}:{initialCatalog:Skin[]}){
   const won=isWinningRoll(secureRandom(),applyPity(spinChance,state.casino.lossStreak))
   const landing=upgradeLanding(won,spinChance,secureRandom)
   const extraTurns=4+Math.floor(secureRandom()*6)
-  setState(current=>{const tracked=trackWager(current.casino,spinStake,secureRandom);return {...current,balance:Math.min(MAX_BALANCE,current.balance-spinCash+tracked.bonus),inventory:current.inventory.filter(id=>!spinSource.includes(id)),casino:tracked.casino}})
+  setState(current=>{const tracked=trackWager(current.casino,spinStake);return {...current,balance:Math.min(MAX_BALANCE,current.balance-spinCash),inventory:current.inventory.filter(id=>!spinSource.includes(id)),casino:tracked.casino}})
   setRolling(true);setResult(null);setModal(null)
   playUpgradeClick(sound)
   window.setTimeout(()=>startSpinSound(sound,2500),70)

@@ -146,7 +146,7 @@ export function claimMission(casino: CasinoState, missionId: string): { casino: 
 // --- Core tracking ---
 export type WagerOutcome = { casino: CasinoState; bonus: number }
 
-export function trackWager(rawCasino: CasinoState, wager: number, random: () => number, now = Date.now()): WagerOutcome {
+export function trackWager(rawCasino: CasinoState, wager: number, now = Date.now()): WagerOutcome {
   if (!Number.isFinite(wager) || wager <= 0) return { casino: rawCasino, bonus: 0 }
   let casino = rolloverMissions(rawCasino, now)
   const beforeLevel = levelFromXp(casino.xp)
@@ -159,28 +159,23 @@ export function trackWager(rawCasino: CasinoState, wager: number, random: () => 
     totalWagered: casino.totalWagered + wager,
     roundsPlayed: casino.roundsPlayed + 1,
     rakeback: casino.rakeback + wager * tier.rakeback,
-    jackpot: casino.jackpot + wager * JACKPOT_CONTRIBUTION,
   }
   casino = advanceMissions(casino, { wagered: wager, rounds: 1 }, {})
 
-  let bonus = 0
+  // NOTE: placing a bet NEVER grants coins. Levelling up and the progressive
+  // jackpot used to add money here, which meant a *losing* bet could still
+  // increase your balance (e.g. stake 42k, lose, and end up +12k) — a
+  // consolation-prize bug. Level-up / tier-up events are still emitted for
+  // stats and UI, but they no longer pay out. The only way to gain balance is
+  // to actually win a round.
   const afterLevel = levelFromXp(casino.xp)
   if (afterLevel > beforeLevel) {
-    for (let level = beforeLevel + 1; level <= afterLevel; level += 1) bonus += levelUpReward(level)
-    emitCasinoEvent({ type: 'level-up', level: afterLevel, reward: bonus })
+    emitCasinoEvent({ type: 'level-up', level: afterLevel, reward: 0 })
     const afterTier = vipTier(afterLevel)
     if (afterTier.name !== tier.name) emitCasinoEvent({ type: 'tier-up', tier: afterTier.name })
   }
 
-  // Progressive jackpot: chance scales with wager, capped.
-  const jackpotChance = Math.min(0.0009, wager / 30_000_000)
-  if (random() < jackpotChance) {
-    const amount = Math.floor(casino.jackpot)
-    bonus += amount
-    casino = { ...casino, jackpot: JACKPOT_SEED, jackpotWins: casino.jackpotWins + 1 }
-    emitCasinoEvent({ type: 'jackpot', amount })
-  }
-  return { casino, bonus }
+  return { casino, bonus: 0 }
 }
 
 export function trackResult(rawCasino: CasinoState, wager: number, payout: number, now = Date.now()): CasinoState {

@@ -16,6 +16,7 @@ export type GameState = {
   language: 'en' | 'ua'
   dailyGift: string | null
   nickname: string | null
+  avatar: string | null
   coinFarm: CoinFarm
   rouletteTurbo?: boolean
   casino: CasinoState
@@ -34,6 +35,7 @@ export const initialGameState: GameState = {
   language: 'en',
   dailyGift: null,
   nickname: null,
+  avatar: null,
   coinFarm: { readySlots: 0, cycleStartedAt: 0 },
   casino: initialCasino,
 }

@@ -114,7 +114,7 @@ export const MAX_INVENTORY = 2_000
 export type NormalizableGameState = {
   balance: number; credits: number; inventory: string[]; upgrades: number; promo: string[]
   history: unknown[]; multiplier: number; language: 'en' | 'ua'; dailyGift: string | null
-  nickname: string | null; coinFarm: { readySlots: number; cycleStartedAt: number }; rouletteTurbo?: boolean
+  nickname: string | null; avatar?: string | null; coinFarm: { readySlots: number; cycleStartedAt: number }; rouletteTurbo?: boolean
   casino?: import('@/lib/casino-system').CasinoState
   }
 
@@ -130,6 +130,9 @@ export function normalizeGameState(value: unknown, fallback: NormalizableGameSta
   }))].slice(0, MAX_INVENTORY) : []
   const promo = Array.isArray(raw.promo) ? [...new Set(raw.promo.filter((code): code is string => code === 'UPGRADE' || code === 'WELCOME'))] : []
   const nickname = typeof raw.nickname === 'string' ? raw.nickname.trim().replace(/\s+/g, ' ').slice(0, 20) || null : null
+  // Avatars are stored as small downscaled data URLs; cap the length so a bad
+  // localStorage value can never bloat or break the saved state.
+  const avatar = typeof raw.avatar === 'string' && raw.avatar.startsWith('data:image/') && raw.avatar.length <= 200_000 ? raw.avatar : null
   const farm = raw.coinFarm && typeof raw.coinFarm === 'object' ? raw.coinFarm : fallback.coinFarm
   return {
     ...fallback,
@@ -137,7 +140,7 @@ export function normalizeGameState(value: unknown, fallback: NormalizableGameSta
     inventory, upgrades: finiteInt(raw.upgrades, fallback.upgrades, 1_000_000_000), promo,
     history: Array.isArray(raw.history) ? raw.history.filter(item => item && typeof item === 'object').slice(0, 50) : [],
     multiplier: raw.multiplier === 3 ? 3 : 1, language: raw.language === 'ua' ? 'ua' : 'en',
-    dailyGift: typeof raw.dailyGift === 'string' && raw.dailyGift.length <= 40 ? raw.dailyGift : null, nickname,
+    dailyGift: typeof raw.dailyGift === 'string' && raw.dailyGift.length <= 40 ? raw.dailyGift : null, nickname, avatar,
     coinFarm: { readySlots: finiteInt(farm.readySlots, 0, 3), cycleStartedAt: typeof farm.cycleStartedAt === 'number' && Number.isFinite(farm.cycleStartedAt) ? Math.min(now, Math.max(0, farm.cycleStartedAt)) : now },
   rouletteTurbo: raw.rouletteTurbo === true,
   casino: normalizeCasino(raw.casino),

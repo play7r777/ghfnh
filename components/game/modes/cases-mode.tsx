@@ -130,28 +130,43 @@ export function CasesMode({ state, setState, allSkins, operationLock, setOperati
     setDrop(null)
     setStatus('OPENING...')
     setState((current) => {
-      const tracked = trackWager(current.casino, casePrice, secureRandomValue)
-      return { ...current, balance: Math.min(MAX_BALANCE, current.balance - casePrice + tracked.bonus), casino: tracked.casino }
+      const tracked = trackWager(current.casino, casePrice)
+      return { ...current, balance: Math.min(MAX_BALANCE, current.balance - casePrice), casino: tracked.casino }
     })
     playArcadeStart(sound, 'cases', SPIN_MS)
     setReel(cells)
     setSpinning(false)
     setTranslate(0)
     const jitter = random() * 0.4 - 0.2 // stop-point jitter within the winner cell (-0.2..0.2)
-    // Measure the REAL winner-cell position after layout — card width is responsive
-    // (128px / 110px), so a hardcoded step would overshoot the strip into grey emptiness.
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+    // Wait until the freshly-built strip is really in the DOM, then measure the REAL
+    // winner-cell position. Two bugs are fixed here:
+    //   1) VOID: card width is responsive (128px / 110px) and the reel is only ever
+    //      as long as REEL_LENGTH cells. If we measured the stale idle strip (or used a
+    //      hardcoded step) the pointer could overshoot past the last card and stop on
+    //      empty grey. We retry across frames until the winner cell exists, and clamp
+    //      the stop point so it can never scroll beyond the real content.
+    //   2) FROZEN: resetting to 0 and setting the target in the same paint made the
+    //      browser skip the CSS transition. Forcing a reflow between the reset and the
+    //      target guarantees the reel actually animates every time.
+    const animate = (attempt: number) => {
       const track = trackRef.current
-      const viewportWidth = viewportRef.current?.clientWidth ?? 900
+      const viewport = viewportRef.current
       const winnerEl = track?.querySelector('[data-winner="true"]') as HTMLElement | null
+      if ((!track || !viewport || !winnerEl) && attempt < 8) {
+        window.requestAnimationFrame(() => animate(attempt + 1))
+        return
+      }
+      const viewportWidth = viewport?.clientWidth ?? 900
       const cellWidth = winnerEl?.offsetWidth ?? CELL
       const trackWidth = track?.scrollWidth ?? REEL_LENGTH * cellWidth
       const winnerCenter = winnerEl ? winnerEl.offsetLeft + cellWidth / 2 : WINNER_INDEX * CELL + CELL / 2
-      const rawTarget = winnerCenter - viewportWidth / 2 + jitter * cellWidth
-      const target = Math.max(0, Math.min(rawTarget, Math.max(0, trackWidth - viewportWidth)))
+      const maxTarget = Math.max(0, trackWidth - viewportWidth)
+      const target = Math.min(Math.max(0, winnerCenter - viewportWidth / 2 + jitter * cellWidth), maxTarget)
+      if (track) void track.offsetWidth // force reflow so translate:0 is committed before we animate
       setSpinning(true)
       setTranslate(-target)
-    }))
+    }
+    window.requestAnimationFrame(() => animate(0))
     const token = ++roundToken.current
     roundTimer.current = window.setTimeout(() => {
       if (token !== roundToken.current) return
@@ -186,7 +201,7 @@ export function CasesMode({ state, setState, allSkins, operationLock, setOperati
     <aside className="arcade-panel">
       <div className="session-pulse" aria-label="Current session statistics"><div><span>SESSION</span><b>{session.rounds} rounds</b></div><div><span>HIT RATE</span><b>{session.rounds ? Math.round(session.wins / session.rounds * 100) : 0}%</b></div><div><span>{session.streak >= 0 ? 'HOT STREAK' : 'COLD STREAK'}</span><b>{Math.abs(session.streak)}×</b></div><div><span>NET</span><b className={session.profit >= 0 ? 'positive' : 'negative'}>{session.profit >= 0 ? '+' : ''}{money(session.profit)}</b></div></div>
       <span>SELECT A CASE</span>
-      <div className="case-picker">{CASES.map((item) => <button key={item.id} className={`case-pick ${caseId === item.id ? 'active' : ''}`} style={{ '--case-accent': item.accent } as React.CSSProperties} disabled={playing} onClick={() => { setCaseId(item.id); setReel([]); setDrop(null); setStatus('PICK A CASE AND OPEN IT') }}><b>{item.name}</b><em>{item.tag}</em><strong>{money(item.price)}</strong></button>)}</div>
+      <div className="case-picker">{CASES.map((item) => <button key={item.id} className={`case-pick ${caseId === item.id ? 'active' : ''}`} style={{ '--case-accent': item.accent } as React.CSSProperties} disabled={playing} onClick={() => { setCaseId(item.id); setReel([]); setDrop(null); setSpinning(false); setTranslate(0); setStatus('PICK A CASE AND OPEN IT') }}><b>{item.name}</b><em>{item.tag}</em><strong>{money(item.price)}</strong></button>)}</div>
       <button className="arcade-play" disabled={playing || operationLock || casePrice > state.balance} onClick={openCase}>{playing ? 'OPENING...' : `OPEN CASE · ${money(casePrice)}`}</button>
       <small>Balance: {money(state.balance)} coins</small>
     </aside>

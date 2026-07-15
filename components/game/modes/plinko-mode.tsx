@@ -187,8 +187,8 @@ export function PlinkoMode({ state, setState, operationLock, setOperationLock, s
     balanceRef.current -= wager
     pendingRef.current.set(ball.id, wager)
     setState((current) => {
-      const tracked = trackWager(current.casino, wager, secureRandomValue)
-      return { ...current, balance: Math.min(MAX_BALANCE, current.balance - wager + tracked.bonus), casino: tracked.casino }
+      const tracked = trackWager(current.casino, wager)
+      return { ...current, balance: Math.min(MAX_BALANCE, current.balance - wager), casino: tracked.casino }
     })
     setBalls((current) => [...current, ball])
     playArcadeStart(sound, 'plinko', DROP_DURATION)
