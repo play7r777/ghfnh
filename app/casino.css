@@ -130,9 +130,18 @@
 .case-drop-result b{display:block;font-size:14px;letter-spacing:.04em}
 .case-drop-result strong{display:block;margin-top:4px;font-size:22px;font-weight:950;font-variant-numeric:tabular-nums;color:#fff}
 .case-drop-result span{display:block;margin-top:3px;font-size:12px;font-weight:950;color:#858792}
-.case-drop-result.tier-profit span,.case-drop-result.tier-big span,.case-drop-result.tier-jackpot span{color:#38d160}
-.case-drop-result.tier-big{border-color:#7a4dbb}
-.case-drop-result.tier-jackpot{border-color:#ffcc00;background:linear-gradient(120deg,#1c1706,#2b2208);box-shadow:0 0 30px rgb(255 204 0 / 25%)}
+.case-drop-result.tier-pink span,.case-drop-result.tier-red span,.case-drop-result.tier-gold span{color:#38d160}
+.case-drop-result.tier-gold{background:linear-gradient(120deg,#1c1706,#2b2208);box-shadow:0 0 30px rgb(255 204 0 / 25%)}
+
+/* Case picker — many selectable cases */
+.case-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 4px}
+.case-pick{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border:2px solid #22242c;border-left:4px solid var(--case-accent,#4b69ff);border-radius:10px;background:#14151b;color:var(--foreground);cursor:pointer;transition:border-color .15s,background .15s}
+.case-pick b{font-size:11px;font-weight:950;letter-spacing:.04em}
+.case-pick em{font-size:9px;font-weight:800;letter-spacing:.1em;font-style:normal;color:var(--case-accent,#8a8d97)}
+.case-pick strong{font-size:13px;font-weight:950;font-variant-numeric:tabular-nums;color:#ffcc00}
+.case-pick.active{background:#1c1e26;border-color:var(--case-accent,#4b69ff)}
+.case-pick:disabled{opacity:.6;cursor:not-allowed}
+@media(max-width:900px){.case-picker{grid-template-columns:1fr}}
 
 /* Profile daily stats — casino-style "won today" strip (wins only, never losses) */
 .profile-day-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:14px 0}

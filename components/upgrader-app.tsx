@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowUpDown, ChevronLeft, ChevronRight, CircleUserRound, Coins, Headphones, Menu, Minus, Plus, Search, Send, ShoppingBag, ShoppingCart, Volume2, VolumeX, Wallet, X, Zap } from 'lucide-react'
-import { applyPity, calculateChance, ECONOMY_SCALE, filterCatalog, findAffordableCatalogPrice, isWinningRoll, MAX_BALANCE, normalizeGameState, upgradeLanding, validateUpgradeStake } from '@/lib/game-logic'
+import { applyPity, calculateChance, ECONOMY_SCALE, filterCatalog, findAffordableCatalogPrice, isWinningRoll, MAX_BALANCE, normalizeGameState, rarityColor, upgradeLanding, validateUpgradeStake } from '@/lib/game-logic'
 import { playArcadeStart, playArcadeStep, playUpgradeClick, playUpgradeResult, startSpinSound, stopSpinSound } from '@/lib/game-audio'
 import { applyClickBurst, claimCoinSlot, COIN_SLOT_VALUE, getCoinFarmStatus, MAX_COIN_SLOTS } from '@/lib/coin-farm'
 import { initialGameState as initial, money, secureRandomValue, type CatalogState, type GameMode, type GameState, type History, type Skin } from '@/lib/game-model'
@@ -10,7 +10,7 @@ import { PlinkoMode } from '@/components/game/modes/plinko-mode'
 import { ArcadeMode } from '@/components/game/modes/arcade-mode'
 import { CasesMode } from '@/components/game/modes/cases-mode'
 import { instanceId, Mark, skinIdFromInstance, SkinImage } from '@/components/game/shared'
-import { CasinoEventLayer, JackpotTicker, LevelBadge, LiveWinsTicker, OnlineCounter, RewardsModal } from '@/components/casino/casino-hud'
+import { CasinoEventLayer, LevelBadge, OnlineCounter, RewardsModal } from '@/components/casino/casino-hud'
 import { trackResult, trackWager } from '@/lib/casino-system'
 
 const cdn = 'https://steamcdn-a.akamaihd.net/apps/730/icons/econ/default_generated/'
@@ -53,7 +53,6 @@ function Header({ state, sound, mode, onMode, onSound, onTopup, onProfile, onLan
     <div className="language-flags" aria-label={t.settings}><button className={state.language==='en'?'active':''} onClick={()=>onLanguage('en')} aria-label="English">EN</button><button className={state.language==='ua'?'active':''} onClick={()=>onLanguage('ua')} aria-label="Українська">UA</button></div>
     <div className="brand"><div className="mode-menu"><button className="mode-menu-trigger" aria-label="Open game modes" aria-expanded={menuOpen} onClick={()=>setMenuOpen(open=>!open)}><Menu aria-hidden="true"/></button>{menuOpen&&<div className="mode-menu-list" role="menu">{(['upgrader','crash','mines','cases','roulette','tower','plinko'] as GameMode[]).map((item,index)=><button key={item} className={mode===item?'active':''} role="menuitem" onClick={()=>{onMode(item);setMenuOpen(false)}}><span aria-hidden="true">{String(index+1).padStart(2,'0')}</span><b className="mode-menu-label">{item==='roulette'?'Roulette':item[0].toUpperCase()+item.slice(1)}</b></button>)}</div>}</div><img className="brand-logo" src="/upgrader-brand.svg" alt="" aria-hidden="true"/><b>{mode.toUpperCase()}</b><Headphones aria-hidden="true"/></div>
     <OnlineCounter/>
-    <JackpotTicker jackpot={state.casino.jackpot}/>
     <div className="player-stat"><strong>{state.nickname??'Player'}</strong><span>Best drop chance: {best.toFixed(2)}%</span></div>
     <div className="header-spacer"/>
     <LevelBadge casino={state.casino} onOpen={onRewards}/>
@@ -79,7 +78,7 @@ function LiveFeed({history,allSkins,nickname}:{history:History[];allSkins:Skin[]
 }
 
 function SkinCard({ skin, selected, onClick }:{skin:Skin;selected:boolean;onClick:()=>void}){
-  return <button className={`skin-card ${skin.rarity} ${selected?'selected':''}`} onClick={onClick}>
+  return <button className={`skin-card ${skin.rarity} ${selected?'selected':''}`} style={selected?undefined:{borderColor:rarityColor(skin)}} onClick={onClick}>
     <span className="skin-price">{money(skin.price)}<Mark small/></span>
     <SkinImage src={skin.image} alt={`${skin.weapon} ${skin.name}`}/>
     <span>{skin.weapon}</span><strong>{skin.name}</strong><b>{money(skin.price)} <Mark small/></b>
@@ -92,7 +91,7 @@ function CatalogTools({from,to,onFrom,onTo,ascending,onSort,budgetShortcuts}:{fr
 
 function MarketCard({skin,quantity,onChange}:{skin:Skin;quantity:number;onChange:(value:number)=>void}){
  const add=()=>onChange(quantity+1)
- return <article className={`skin-card market-card ${skin.rarity}`} role="button" tabIndex={0} aria-label={`Add ${skin.weapon} ${skin.name} to cart`} onClick={add} onKeyDown={event=>{if((event.key==='Enter'||event.key===' ')&&!event.nativeEvent.isComposing&&event.keyCode!==229){event.preventDefault();add()}}}><span className="skin-price">{money(skin.price)}<Mark small/></span><SkinImage src={skin.image} alt={`${skin.weapon} ${skin.name}`}/><span>{skin.weapon}</span><strong>{skin.name}</strong><div className="quantity-control"><button onClick={event=>{event.stopPropagation();onChange(Math.max(0,quantity-1))}} aria-label="Remove one"><Minus/></button><b>{quantity}</b><button onClick={event=>{event.stopPropagation();add()}} aria-label="Add one"><Plus/></button></div></article>
+ return <article className={`skin-card market-card ${skin.rarity}`} style={{borderColor:rarityColor(skin)}} role="button" tabIndex={0} aria-label={`Add ${skin.weapon} ${skin.name} to cart`} onClick={add} onKeyDown={event=>{if((event.key==='Enter'||event.key===' ')&&!event.nativeEvent.isComposing&&event.keyCode!==229){event.preventDefault();add()}}}><span className="skin-price">{money(skin.price)}<Mark small/></span><SkinImage src={skin.image} alt={`${skin.weapon} ${skin.name}`}/><span>{skin.weapon}</span><strong>{skin.name}</strong><div className="quantity-control"><button onClick={event=>{event.stopPropagation();onChange(Math.max(0,quantity-1))}} aria-label="Remove one"><Minus/></button><b>{quantity}</b><button onClick={event=>{event.stopPropagation();add()}} aria-label="Add one"><Plus/></button></div></article>
 }
 
 function EmptySlot({title,sub}:{title:string;sub:string}){ return <section className="weapon-slot"><h3>{title}</h3><p>{sub}</p><div className="ghost-gun"><Mark/></div></section> }
@@ -191,7 +190,7 @@ export function UpgraderApp({initialCatalog}:{initialCatalog:Skin[]}){
   },2600)
  }
  return <main className="game-shell">
-  <Header state={state} sound={sound} mode={mode} onMode={nextMode=>{if(!rolling&&!operationLock){setMode(nextMode);setResult(null)}}} onSound={()=>setSound(x=>{if(x)stopSpinSound();return !x})} onTopup={()=>{if(!rolling&&!operationLock)setModal('topup')}} onProfile={()=>{if(!rolling&&!operationLock)setModal('profile')}} onLanguage={language=>{if(!rolling&&!operationLock)setState(s=>({...s,language}))}} onRewards={()=>{if(!rolling)setModal('rewards')}}/><LiveWinsTicker/><CasinoEventLayer sound={sound}/><LiveFeed history={state.history} allSkins={allSkins} nickname={state.nickname??'Player'}/>
+  <Header state={state} sound={sound} mode={mode} onMode={nextMode=>{if(!rolling&&!operationLock){setMode(nextMode);setResult(null)}}} onSound={()=>setSound(x=>{if(x)stopSpinSound();return !x})} onTopup={()=>{if(!rolling&&!operationLock)setModal('topup')}} onProfile={()=>{if(!rolling&&!operationLock)setModal('profile')}} onLanguage={language=>{if(!rolling&&!operationLock)setState(s=>({...s,language}))}} onRewards={()=>{if(!rolling)setModal('rewards')}}/><CasinoEventLayer sound={sound}/><LiveFeed history={state.history} allSkins={allSkins} nickname={state.nickname??'Player'}/>
   <div className="workspace">{mode==='plinko'?<PlinkoMode state={state} setState={setState} operationLock={operationLock} setOperationLock={setOperationLock} sound={sound}/>:mode==='cases'?<CasesMode state={state} setState={setState} allSkins={allSkins} operationLock={operationLock} setOperationLock={setOperationLock} sound={sound}/>:mode!=='upgrader'?<ArcadeMode mode={mode} state={state} setState={setState} operationLock={operationLock} setOperationLock={setOperationLock} sound={sound}/>:<><div className="wordmark"><Mark/><b>UPGRADER</b></div><button className="sound-toggle" onClick={()=>setSound(x=>{if(x)stopSpinSound();return !x})}>{sound?<Volume2/>:<VolumeX/>}</button>
    <div className="upgrade-stage"><div className="source-side">{source.length>0?<section className={`weapon-slot selected-source selected-count-${Math.min(source.length,4)}`}>{ownedRows.filter(row=>source.includes(row.instance)).map(({instance,skin})=><div key={instance} className="selected-skin-preview"><SkinImage src={skin.image} alt={`${skin.weapon} ${skin.name}`} priority/><strong>{skin.weapon} · {skin.name}</strong></div>)}</section>:<EmptySlot title={t.selectSource} sub={owned.length?'Choose a skin from MY SKINS below.':t.emptySub}/>}</div>
    <div className={`wheel-wrap ${result||''}`} style={{'--chance-start-soft':`${179.65 - chance * 1.8}deg`,'--chance-start':`${180 - chance * 1.8}deg`,'--chance-mid':`${180}deg`,'--chance-end':`${180 + chance * 1.8}deg`,'--chance-end-soft':`${180.35 + chance * 1.8}deg`} as React.CSSProperties}><div className="wheel-ticks"/><div className="chance-wheel"><div className="wheel-rotor"/><div className="wheel-center"><img src="/wheel-logo.svg" alt=""/><b>{chance.toFixed(2)} %</b>{result&&<span>{result==='win'?'SUCCESS':'FAILED'}</span>}</div><i className="wheel-pointer-orbit" style={{'--rotation':`${wheelRotation}deg`} as React.CSSProperties}><span/></i></div></div>

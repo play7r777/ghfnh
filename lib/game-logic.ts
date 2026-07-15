@@ -2,7 +2,11 @@ import { normalizeCasino } from '@/lib/casino-system'
 
 export const ECONOMY_SCALE = 1500
 
-export type SkinRarity = 'common' | 'rare' | 'epic' | 'legendary'
+// Full CS2 rarity ladder (matches in-game grades). Legacy 4-tier values are kept
+// so older saved data / fallback tables still type-check.
+export type SkinRarity =
+  | 'consumer' | 'industrial' | 'milspec' | 'restricted' | 'classified' | 'covert' | 'contraband' | 'exotic'
+  | 'common' | 'rare' | 'epic' | 'legendary'
 export type CatalogSkin = {
   id: string
   weapon: string
@@ -10,6 +14,20 @@ export type CatalogSkin = {
   price: number
   image: string
   rarity: SkinRarity
+  rarityColor?: string
+}
+
+// Exact border colors used by CS2 for each rarity (knives/gloves get the gold star tone).
+export const RARITY_COLORS: Record<SkinRarity, string> = {
+  consumer: '#b0c3d9', industrial: '#5e98d9', milspec: '#4b69ff', restricted: '#8847ff',
+  classified: '#d32ce6', covert: '#eb4b4b', contraband: '#e4ae39', exotic: '#e4ae39',
+  // legacy aliases mapped onto the closest CS2 tone
+  common: '#b0c3d9', rare: '#4b69ff', epic: '#8847ff', legendary: '#e4ae39',
+}
+
+// Resolve the outline color for any skin, preferring the exact per-skin color from the catalog.
+export function rarityColor(skin: { rarity: SkinRarity; rarityColor?: string }) {
+  return skin.rarityColor ?? RARITY_COLORS[skin.rarity] ?? RARITY_COLORS.milspec
 }
 
 export const knifeWords = ['Knife', 'Bayonet', 'Karambit', 'Daggers', 'Kukri']
@@ -190,6 +208,40 @@ export function minesMultiplier(safePicks: number, mines: number, cells = 25) {
   return Number((0.96 / probability).toFixed(2))
 }
 
+// ---- Tower ----
+// Each difficulty is a distinct, worthwhile mode. The per-floor payout equals the
+// fair odds of clearing a floor (rooms / safeRooms), so HARD opens at a real 3.00x
+// on the very first room instead of the old dead 1.33x.
+export type TowerModeKey = 'easy' | 'medium' | 'hard' | 'insane'
+export type TowerMode = { key: TowerModeKey; label: string; rooms: number; traps: number; floors: number }
+export const TOWER_MODES: Record<TowerModeKey, TowerMode> = {
+  easy:   { key: 'easy',   label: 'EASY',   rooms: 4, traps: 1, floors: 8 }, // 3 safe -> 1.33x / floor
+  medium: { key: 'medium', label: 'MEDIUM', rooms: 3, traps: 1, floors: 8 }, // 2 safe -> 1.50x / floor
+  hard:   { key: 'hard',   label: 'HARD',   rooms: 3, traps: 2, floors: 8 }, // 1 safe -> 3.00x / floor
+  insane: { key: 'insane', label: 'INSANE', rooms: 4, traps: 3, floors: 6 }, // 1 safe -> 4.00x / floor
+}
+
+export function towerStep(mode: TowerModeKey) {
+  const config = TOWER_MODES[mode] ?? TOWER_MODES.hard
+  const safe = Math.max(1, config.rooms - config.traps)
+  return config.rooms / safe
+}
+
+// Cumulative payout after clearing `level` floors on a mode.
+export function towerPayout(mode: TowerModeKey, level: number) {
+  if (level <= 0) return 1
+  return Number(Math.pow(towerStep(mode), level).toFixed(2))
+}
+
+// Distinct trap room indices for one floor.
+export function towerTrapRooms(mode: TowerModeKey, random: () => number) {
+  const config = TOWER_MODES[mode] ?? TOWER_MODES.hard
+  const traps = new Set<number>()
+  while (traps.size < Math.min(config.traps, config.rooms - 1)) traps.add(Math.floor(random() * config.rooms))
+  return [...traps]
+}
+
+// Legacy helper kept for compatibility (fair odds for the old 3-room / 1-safe layout).
 export function towerMultiplier(level: number, difficulty: number) {
   return Number(Math.pow(1 / (1 - difficulty / 4), level).toFixed(2))
 }
