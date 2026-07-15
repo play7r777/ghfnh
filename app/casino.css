@@ -1,0 +1,147 @@
+/* ===== Casino engagement system styles ===== */
+
+/* Header widgets */
+.online-stat span{display:flex;align-items:center;gap:7px}
+.online-dot{width:8px;height:8px;border-radius:50%;background:#38d160;box-shadow:0 0 8px rgb(56 209 96 / 70%);animation:online-pulse 2s ease-in-out infinite}
+@keyframes online-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+
+.jackpot-ticker{display:flex;align-items:center;gap:10px;height:56px;padding:0 18px;border:1px solid #6b5900;border-radius:14px;background:linear-gradient(120deg,#17181d,#221c05);flex:none;white-space:nowrap}
+.jackpot-ticker svg{color:#ffcc00;width:22px;height:22px;animation:jackpot-glow 2.6s ease-in-out infinite}
+@keyframes jackpot-glow{0%,100%{filter:drop-shadow(0 0 2px rgb(255 204 0 / 40%))}50%{filter:drop-shadow(0 0 9px rgb(255 204 0 / 90%))}}
+.jackpot-ticker span{display:block;color:#858792;font-size:10px;font-weight:950;letter-spacing:.14em}
+.jackpot-ticker b{display:block;font-size:15px;font-weight:950;font-variant-numeric:tabular-nums;color:#ffcc00}
+
+.level-badge{display:flex;align-items:center;gap:10px;height:56px;padding:0 14px;border:1px solid #292b33;border-radius:14px;background:#17181d;cursor:pointer;transition:border-color .2s}
+.level-badge:hover{border-color:var(--tier-color,#ffcc00)}
+.level-ring{position:relative;display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:conic-gradient(var(--tier-color,#ffcc00) var(--progress,0%),#292b33 var(--progress,0%))}
+.level-ring b{display:grid;place-items:center;width:33px;height:33px;border-radius:50%;background:#0e0f13;font-size:13px;font-weight:950}
+.level-tier{display:flex;align-items:center;gap:6px;color:var(--tier-color,#ffcc00);font-size:11px;font-weight:950;letter-spacing:.1em}
+.level-tier svg{width:14px;height:14px}
+
+/* Drops feed sits below the live wins ticker */
+.feed{top:150px}
+
+/* Live wins ticker */
+.live-wins{position:relative;display:flex;align-items:stretch;gap:0;height:52px;border-bottom:1px solid #292b33;background:#0e0f13;overflow:hidden}
+.live-wins-label{display:flex;align-items:center;gap:6px;padding:0 16px;background:#121318;border-right:1px solid #292b33;color:#ffcc00;font-size:11px;font-weight:950;letter-spacing:.16em;flex:none;z-index:2}
+.live-wins-label svg{width:14px;height:14px;animation:online-pulse 1.6s ease-in-out infinite}
+.live-wins-track{display:flex;align-items:center;gap:10px;padding:0 14px;overflow:hidden;mask-image:linear-gradient(to right,transparent,#000 3%,#000 92%,transparent)}
+.live-wins-track article{display:flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid #22242c;border-radius:9px;background:#14151b;flex:none;animation:win-enter .45s ease}
+.live-wins-track article.hot{border-color:#6b5900;background:linear-gradient(120deg,#181712,#241d06)}
+@keyframes win-enter{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+.live-wins-track b{font-size:12px;color:#e8e9ee}
+.live-wins-track span{color:#858792;font-size:10px;font-weight:950;letter-spacing:.08em}
+.live-wins-track strong{font-size:12px;color:#38d160;font-variant-numeric:tabular-nums}
+.live-wins-track em{font-style:normal;font-size:11px;font-weight:950;color:#ffcc00}
+
+/* Toasts */
+.casino-toasts{position:fixed;right:20px;bottom:20px;z-index:80;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.casino-toast{display:flex;align-items:center;gap:12px;min-width:250px;padding:13px 16px;border:1px solid #3a3c45;border-radius:12px;background:#16171d;box-shadow:0 10px 30px rgb(0 0 0 / 55%);animation:toast-in .35s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes toast-in{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:none}}
+.casino-toast svg{width:24px;height:24px;flex:none;color:#ffcc00}
+.casino-toast b{display:block;font-size:13px;letter-spacing:.06em}
+.casino-toast span{display:block;margin-top:2px;color:#9a9ca8;font-size:12px}
+.toast-level-up{border-color:#6b5900;background:linear-gradient(120deg,#16171d,#231d07)}
+.toast-jackpot{border-color:#ffcc00;background:linear-gradient(120deg,#1c1706,#2b2208);box-shadow:0 0 30px rgb(255 204 0 / 25%)}
+.toast-streak svg{color:#ff7a3d}
+.toast-tier-up svg{color:#7fd4ff}
+.toast-mission svg{color:#38d160}
+
+/* Big win overlay */
+.big-win-overlay{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:rgb(0 0 0 / 62%);animation:overlay-in .25s ease;cursor:pointer}
+@keyframes overlay-in{from{opacity:0}to{opacity:1}}
+.big-win-card{position:relative;display:grid;place-items:center;gap:4px;padding:52px 84px;border:2px solid #6b5900;border-radius:24px;background:radial-gradient(circle at 50% 0%,#2b2208,#121014 70%);overflow:hidden;animation:bigwin-pop .5s cubic-bezier(.2,1.4,.4,1)}
+@keyframes bigwin-pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.big-win-card span{position:relative;z-index:2;color:#ffcc00;font-size:15px;font-weight:950;letter-spacing:.32em}
+.big-win-card b{position:relative;z-index:2;font-size:clamp(38px,6vw,64px);font-weight:950;font-variant-numeric:tabular-nums;color:#fff;text-shadow:0 0 26px rgb(255 204 0 / 55%)}
+.big-win-card em{position:relative;z-index:2;font-style:normal;font-size:20px;font-weight:950;color:#38d160}
+.big-win-overlay.mega .big-win-card{border-color:#ffcc00;box-shadow:0 0 80px rgb(255 204 0 / 35%)}
+.big-win-rays{position:absolute;inset:-60%;background:conic-gradient(from 0deg,transparent 0deg,rgb(255 204 0 / 9%) 12deg,transparent 24deg,transparent 36deg,rgb(255 204 0 / 9%) 48deg,transparent 60deg,transparent 72deg,rgb(255 204 0 / 9%) 84deg,transparent 96deg,transparent 108deg,rgb(255 204 0 / 9%) 120deg,transparent 132deg,transparent 144deg,rgb(255 204 0 / 9%) 156deg,transparent 168deg,transparent 180deg,rgb(255 204 0 / 9%) 192deg,transparent 204deg,transparent 216deg,rgb(255 204 0 / 9%) 228deg,transparent 240deg,transparent 252deg,rgb(255 204 0 / 9%) 264deg,transparent 276deg,transparent 288deg,rgb(255 204 0 / 9%) 300deg,transparent 312deg,transparent 324deg,rgb(255 204 0 / 9%) 336deg,transparent 348deg);animation:rays-spin 9s linear infinite}
+@keyframes rays-spin{to{transform:rotate(360deg)}}
+.big-win-coins{position:absolute;inset:0;pointer-events:none}
+.big-win-coins i{position:absolute;top:-14px;left:calc(var(--n)*5.6%);width:10px;height:10px;border-radius:50%;background:#ffcc00;box-shadow:0 0 8px rgb(255 204 0 / 70%);animation:coin-fall 1.5s linear infinite;animation-delay:calc(var(--n)*.14s)}
+@keyframes coin-fall{to{transform:translateY(440px) rotate(500deg);opacity:.15}}
+
+/* Rewards hub modal */
+.rewards-modal{display:grid;gap:18px}
+.rewards-vip{display:flex;align-items:center;gap:22px;padding:20px;border:1px solid var(--tier-color,#ffcc00);border-radius:16px;background:linear-gradient(120deg,#14151b,#1a1710)}
+.vip-crest{display:grid;place-items:center;gap:6px;flex:none}
+.vip-crest svg{width:34px;height:34px;color:var(--tier-color,#ffcc00)}
+.vip-crest b{color:var(--tier-color,#ffcc00);font-size:14px;font-weight:950;letter-spacing:.16em}
+.vip-progress{flex:1;min-width:0}
+.vip-progress-top{display:flex;justify-content:space-between;font-size:12px;font-weight:950;color:#b9bbc6;letter-spacing:.08em}
+.vip-bar{height:12px;margin:8px 0;border-radius:99px;background:#22242c;overflow:hidden}
+.vip-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--tier-color,#ffcc00),#ffe36b);transition:width .5s ease}
+.vip-progress p{margin:0;color:#858792;font-size:12px}
+
+.rewards-claims{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rewards-claims article{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid #3a3c45;border-radius:14px;background:#16171d}
+.rewards-claims article.claimed{opacity:.65}
+.rewards-claims svg{width:26px;height:26px;color:#ffcc00;flex:none}
+.rewards-claims div{flex:1;min-width:0}
+.rewards-claims b{display:block;font-size:13px;letter-spacing:.08em}
+.rewards-claims span{display:block;margin-top:3px;color:#858792;font-size:12px}
+.rewards-claims .yellow-button{height:42px;padding:0 16px;flex:none;font-size:12px}
+.rewards-claims .yellow-button:disabled{background:#292b33;color:#6f717b}
+
+.rewards-section-title{display:flex;align-items:center;gap:9px;font-size:13px;letter-spacing:.1em}
+.rewards-section-title svg{width:17px;height:17px;color:#ffcc00}
+.rewards-section-title span{margin-left:auto;color:#858792;font-size:11px;font-weight:400;letter-spacing:normal}
+
+.rewards-missions{display:grid;gap:9px}
+.rewards-missions article{display:flex;align-items:center;gap:14px;padding:12px 16px;border:1px solid #292b33;border-radius:12px;background:#14151b}
+.rewards-missions article.complete{border-color:#38d160}
+.rewards-missions article.claimed{opacity:.55}
+.rewards-missions article>div{flex:1;min-width:0}
+.rewards-missions b{display:block;font-size:13px}
+.rewards-missions .mission-bar{height:7px;margin:7px 0 4px;border-radius:99px;background:#22242c;overflow:hidden}
+.rewards-missions .mission-bar i{display:block;height:100%;border-radius:99px;background:#38d160;transition:width .4s ease}
+.rewards-missions article span{color:#858792;font-size:11px;font-variant-numeric:tabular-nums}
+.rewards-missions article>button{height:40px;padding:0 16px;border:0;border-radius:9px;background:#ffcc00;color:#090a0b;font-weight:900;font-size:12px;cursor:pointer;flex:none}
+.rewards-missions article>button:disabled{background:#292b33;color:#6f717b;cursor:default}
+
+.rewards-stats{display:grid;gap:10px}
+.rewards-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.rewards-stats-grid>div{padding:12px 14px;border:1px solid #292b33;border-radius:11px;background:#14151b}
+.rewards-stats-grid span{display:block;color:#858792;font-size:10px;font-weight:950;letter-spacing:.12em}
+.rewards-stats-grid b{display:block;margin-top:4px;font-size:15px;font-variant-numeric:tabular-nums}
+
+/* Case opening reel */
+.arcade-cases .arcade-hero{min-width:0}
+.case-reel{position:relative;margin-top:22px;height:190px;border:1px solid #292b33;border-radius:16px;background:#101117;overflow:hidden}
+.case-reel-pointer{position:absolute;top:0;bottom:0;left:50%;z-index:3;width:3px;transform:translateX(-50%);background:#ffcc00;box-shadow:0 0 14px rgb(255 204 0 / 80%)}
+.case-reel-pointer::before,.case-reel-pointer::after{content:'';position:absolute;left:50%;transform:translateX(-50%);border:8px solid transparent}
+.case-reel-pointer::before{top:0;border-top-color:#ffcc00}
+.case-reel-pointer::after{bottom:0;border-bottom-color:#ffcc00}
+.case-reel-track{display:flex;align-items:center;gap:8px;height:100%;padding:0 8px;will-change:transform;transition-property:transform;transition-timing-function:cubic-bezier(.12,.75,.16,1)}
+.case-reel-cell{display:grid;place-items:center;gap:3px;width:128px;min-width:128px;height:158px;padding:10px 8px;border:1px solid #22242c;border-radius:12px;background:#14151b;text-align:center}
+.case-reel-cell .skin-image-shell{width:76px;height:58px}
+.case-reel-cell span{color:#858792;font-size:10px;font-weight:950;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
+.case-reel-cell b{font-size:11px;color:#e8e9ee;font-variant-numeric:tabular-nums}
+.case-reel-cell.rare{border-color:#3d5a8a}
+.case-reel-cell.epic{border-color:#7a4dbb}
+.case-reel-cell.legendary{border-color:#b8860b;background:linear-gradient(160deg,#14151b,#211a08)}
+.case-reel-fade{position:absolute;top:0;bottom:0;z-index:2;width:90px;pointer-events:none}
+.case-reel-fade.left{left:0;background:linear-gradient(to right,#101117,transparent)}
+.case-reel-fade.right{right:0;background:linear-gradient(to left,#101117,transparent)}
+
+.case-drop-result{display:flex;align-items:center;gap:18px;margin-top:18px;padding:16px 20px;border:1px solid #3a3c45;border-radius:14px;background:#16171d;animation:toast-in .35s cubic-bezier(.2,.9,.3,1.2)}
+.case-drop-result .skin-image-shell{width:92px;height:70px;flex:none}
+.case-drop-result b{display:block;font-size:14px;letter-spacing:.04em}
+.case-drop-result strong{display:block;margin-top:4px;font-size:22px;font-weight:950;font-variant-numeric:tabular-nums;color:#fff}
+.case-drop-result span{display:block;margin-top:3px;font-size:12px;font-weight:950;color:#858792}
+.case-drop-result.tier-profit span,.case-drop-result.tier-big span,.case-drop-result.tier-jackpot span{color:#38d160}
+.case-drop-result.tier-big{border-color:#7a4dbb}
+.case-drop-result.tier-jackpot{border-color:#ffcc00;background:linear-gradient(120deg,#1c1706,#2b2208);box-shadow:0 0 30px rgb(255 204 0 / 25%)}
+
+/* Profile daily stats — casino-style "won today" strip (wins only, never losses) */
+.profile-day-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:14px 0}
+.profile-day-stats>div{padding:12px 14px;border:1px solid #292b33;border-radius:11px;background:#14151b}
+.profile-day-stats span{display:block;color:#858792;font-size:10px;font-weight:950;letter-spacing:.12em}
+.profile-day-stats b{display:block;margin-top:4px;font-size:15px;font-weight:950;font-variant-numeric:tabular-nums}
+.profile-day-stats b.positive{color:#38d160}
+
+@media(max-width:1250px){.jackpot-ticker{display:none}}
+@media(max-width:900px){.case-reel{height:170px}.case-reel-cell{width:110px;min-width:110px;height:140px}.profile-day-stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1050px){.level-badge{height:48px;padding:0 10px}.level-tier{display:none}}
+@media(max-width:760px){.rewards-claims{grid-template-columns:1fr}.rewards-stats-grid{grid-template-columns:repeat(2,1fr)}.rewards-vip{flex-direction:column;text-align:center}.vip-progress{width:100%}.big-win-card{padding:38px 30px}}

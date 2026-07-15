@@ -1,0 +1,435 @@
+.plinko-mode {
+  padding: 8px 0 24px;
+}
+
+.plinko-mode .plinko-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+}
+
+.plinko-mode .plinko-game-card,
+.plinko-mode .plinko-panel {
+  border: 2px solid var(--border);
+  border-radius: 18px;
+  background: #111216;
+}
+
+.plinko-mode .plinko-game-card {
+  min-width: 0;
+  padding: 22px;
+  overflow: hidden;
+}
+
+.plinko-mode .plinko-intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.plinko-mode .plinko-intro span,
+.plinko-mode .plinko-panel span {
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .14em;
+}
+
+.plinko-mode .plinko-intro h1 {
+  margin: 6px 0 0;
+  font-size: clamp(22px, 3vw, 38px);
+  line-height: 1;
+}
+
+.plinko-mode .plinko-intro p {
+  margin: 0;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .08em;
+}
+
+.plinko-mode .plinko-board {
+  position: relative;
+  width: min(760px, 100%);
+  aspect-ratio: 1.03;
+  margin: 18px auto 0;
+  border: 1px solid #30343d;
+  border-radius: 16px;
+  background: #080d10;
+  overflow: hidden;
+  box-shadow: inset 0 0 80px rgb(0 0 0 / 48%);
+}
+
+.plinko-mode .plinko-drop-zone {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 50%;
+  width: 38px;
+  height: 34px;
+  transform: translateX(-50%);
+  border: 1px solid #30343d;
+  border-top: 0;
+  border-radius: 0 0 18px 18px;
+  background: #172531;
+}
+
+.plinko-mode .plinko-drop-zone i {
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  width: 7px;
+  height: 7px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
+}
+
+.plinko-mode .plinko-pegs {
+  position: absolute;
+  inset: 5.5% 2.5% 11.5%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.plinko-mode .plinko-row {
+  width: min(calc(16% + var(--row) * 5%), 92%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-inline: auto;
+  padding: 0;
+  gap: 0;
+}
+
+.plinko-mode .plinko-row i {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 7px rgb(255 204 0 / 72%), 0 1px 2px rgb(0 0 0 / 75%);
+}
+
+.plinko-mode .plinko-ball {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  top: 0;
+  width: clamp(14px, 2.1%, 17px);
+  aspect-ratio: 1;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 27%, #ff7189 0 8%, #ff2448 32%, #d90f32 100%);
+  box-shadow: 0 3px 6px rgb(0 0 0 / 55%), 0 0 9px rgb(255 36 72 / 42%);
+  pointer-events: none;
+  will-change: transform;
+  contain: strict;
+}
+
+.plinko-mode .plinko-slots {
+  position: absolute;
+  z-index: 3;
+  inset: auto 1.5% 1.4%;
+  display: grid;
+  grid-template-columns: repeat(17, minmax(0, 1fr));
+  gap: 3px;
+  padding: 0;
+}
+
+.plinko-mode .plinko-slots div {
+  min-width: 0;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  padding: 0 1px;
+  border: 0;
+  border-radius: 5px;
+  background: #292f3a;
+  color: #929bad;
+  box-shadow: 0 4px 0 #171b22;
+  transform: none;
+  transition: transform .14s ease, filter .14s ease;
+}
+
+.plinko-mode .plinko-slots b {
+  min-width: 0;
+  font-size: clamp(7px, .75vw, 11px);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.plinko-mode .plinko-slots .edge-0,
+.plinko-mode .plinko-slots .edge-1 {
+  background: #ff2448;
+  color: #111216;
+  box-shadow: 0 4px 0 #a91530;
+}
+
+.plinko-mode .plinko-slots .edge-2,
+.plinko-mode .plinko-slots .edge-3 {
+  background: #ff4d2e;
+  color: #111216;
+  box-shadow: 0 4px 0 #a92c1c;
+}
+
+.plinko-mode .plinko-slots .edge-4,
+.plinko-mode .plinko-slots .edge-5 {
+  background: #ff7a18;
+  color: #111216;
+  box-shadow: 0 4px 0 #a9470b;
+}
+
+.plinko-mode .plinko-slots .edge-6,
+.plinko-mode .plinko-slots .edge-7 {
+  background: #ff9f0a;
+  color: #111216;
+  box-shadow: 0 4px 0 #a96205;
+}
+
+.plinko-mode .plinko-slots .edge-8 {
+  background: #ffbd00;
+  color: #111216;
+  box-shadow: 0 4px 0 #a67b00;
+}
+
+.plinko-mode .plinko-slots div.active {
+  transform: translateY(-7px) scale(1.06);
+  filter: brightness(1.3);
+}
+
+.plinko-mode .plinko-panel {
+  height: max-content;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.plinko-mode .plinko-panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.plinko-mode .plinko-panel-heading svg {
+  width: 28px;
+  height: 28px;
+  color: var(--primary);
+}
+
+.plinko-mode .plinko-panel-heading div,
+.plinko-mode .plinko-bet {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.plinko-mode .plinko-panel-heading strong {
+  font-size: 20px;
+}
+
+.plinko-mode .plinko-risk,
+.plinko-mode .plinko-quick {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.plinko-mode .plinko-risk button,
+.plinko-mode .plinko-quick button {
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #17181d;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.plinko-mode .plinko-risk button.active {
+  border-color: var(--primary);
+  background: #292610;
+  color: var(--primary);
+}
+
+.plinko-mode .plinko-bet > div {
+  display: flex;
+  align-items: center;
+  border: 2px solid var(--border);
+  border-radius: 9px;
+  background: #0b0c0f;
+}
+
+.plinko-mode .plinko-bet svg {
+  width: 18px;
+  margin-left: 12px;
+  color: var(--primary);
+}
+
+.plinko-mode .plinko-bet input[type='number'] {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 18px;
+  font-weight: 950;
+  outline: 0;
+}
+
+.plinko-mode .plinko-bet input[type='range'] {
+  width: 100%;
+  accent-color: var(--primary);
+}
+
+.plinko-mode .plinko-potential {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #0b0c0f;
+}
+
+.plinko-mode .plinko-potential strong {
+  color: var(--primary);
+}
+
+.plinko-mode .plinko-drop {
+  height: 58px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.plinko-mode .plinko-drop small {
+  display: block;
+  margin-top: 2px;
+  font-size: 8px;
+}
+
+.plinko-mode .plinko-drop:disabled {
+  opacity: .35;
+}
+
+.plinko-mode .plinko-history {
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.plinko-mode .plinko-history > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 0;
+}
+
+.plinko-mode .plinko-history svg {
+  width: 15px;
+}
+
+.plinko-mode .plinko-history ul {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plinko-mode .plinko-history li {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 9px;
+  border-radius: 6px;
+  background: #17181d;
+  font-size: 11px;
+}
+
+.plinko-mode .plinko-history li strong {
+  text-align: right;
+  color: var(--primary);
+}
+
+.plinko-mode .plinko-history p {
+  margin: 4px 0;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+@media (max-width: 1050px) {
+  .plinko-mode .plinko-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .plinko-mode .plinko-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 12px;
+  }
+
+  .plinko-mode .plinko-panel-heading,
+  .plinko-mode .plinko-drop,
+  .plinko-mode .plinko-history {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 620px) {
+  .plinko-mode .plinko-game-card {
+    padding: 12px;
+  }
+
+  .plinko-mode .plinko-intro {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .plinko-mode .plinko-board {
+    aspect-ratio: .92;
+  }
+
+  .plinko-mode .plinko-row i {
+    width: 5px;
+    height: 5px;
+  }
+
+  .plinko-mode .plinko-ball {
+    width: 12px;
+    height: 12px;
+  }
+
+  .plinko-mode .plinko-slots {
+    inset-inline: 1%;
+    gap: 1px;
+  }
+
+  .plinko-mode .plinko-slots div {
+    height: 30px;
+    border-radius: 3px;
+  }
+
+  .plinko-mode .plinko-slots b {
+    font-size: 6px;
+  }
+
+  .plinko-mode .plinko-panel {
+    display: flex;
+  }
+}
